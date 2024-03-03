@@ -1,0 +1,13 @@
+[* this is a comment for sample code that calculates the area of a triangle *]
+$
+function calculateArea(base integer, height integer) {
+    return (base * height) / 2;
+}
+
+$
+    integer base, height, area;
+$
+    scan(base, height); 
+    area = calculateArea(base, height);
+    print(area); 
+$
