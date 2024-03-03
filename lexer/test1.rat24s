@@ -1,13 +1,11 @@
-[* this is a comment for sample code that calculates the area of a triangle *]
+[* this is sample code which finds the sum of two numbers in <10 lines of code *]
 $
-function calculateArea(base integer, height integer) {
-    return (base * height) / 2;
+function findSum(a integer, b integer)
+{
+    return a + b;
 }
-
 $
-    integer base, height, area;
-$
-    scan(base, height); 
-    area = calculateArea(base, height);
-    print(area); 
+integer result;
+result = findSum(1, 2); 
+print(result);
 $

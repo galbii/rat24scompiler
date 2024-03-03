@@ -1,1 +1,30 @@
-while  (fahr <= upper)   a = 23.00;  [* this is a sample *]
+[* this a comment for code that calculates the factorial of inputted number n in >21 lines *]
+
+$
+function factorial(n integer) 
+{
+    if (n == 0) {
+        return 1;
+    }
+    else {
+        integer result;
+        result = 1;
+        integer i; 
+        i = 1;
+        while (i <= n) {
+            result = result * i;
+            i = i + 1;
+        }
+        return result;
+    }
+}
+$
+
+integer n;
+integer result; 
+
+scan(n);
+result = factorial(n);
+print(result);
+
+$
