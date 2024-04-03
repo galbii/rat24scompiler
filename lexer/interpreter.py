@@ -30,7 +30,8 @@ class record:
         self.token = []
         self.lexeme = []
         self.separators = [";", "(", ")", "{", "}", ",", "$"]
-        self.operators = ["=", "+", "-", "*", "/", "==", "!=", ">", "<", "<=", "=>"]
+        self.operators = ["=", "+", "-", "*", "/", "==", "!=", ">", "<","<<", ">>", "<=", "=>", "!"]
+        self.invalid = ["#", "_", "."]
         self.keywords = [
             "function",
             "integer",
@@ -111,9 +112,13 @@ class finitestate:
                     index += 2
                     # ignore characters after the comment marker
                     continue
+                # invalid comment if statement
+                if char in self.rec.invalid:
+                    self.state = "unknown"
+                    self.token += char
                 # checks if current character is an integer
                 # if current character is an integer the character is appended to current token
-                if char.isdigit():
+                elif char.isdigit():
                     self.state = "int"
                     self.token += char
                 # checks if current character is a real number
@@ -159,7 +164,10 @@ class finitestate:
                     pass
                 # ignores invalid characters
                 else:
+                    print(state)
                     raise ValueError(f"Invalid character at index {index}: '{char}'")
+            elif self.state == "unknown":
+                self.token += char
                 # executes if lexer is in the middle of the "comment" state
             elif self.state == "comment":
                 # checks if current character is an asterisk and the next character is a right bracket which signifies the end of a comment
@@ -179,6 +187,11 @@ class finitestate:
                 # if the character "." comes after an integer it signifies the start of a real number
                 elif char == ".":
                     self.state = "real"
+                    self.token += char
+                    if not line[index + 1].isalnum() or index + 1 >= len(line):
+                        self.state = "unknown"
+                elif char.isalpha():
+                    self.state = "unknown"
                     self.token += char
                 else:
                     # if the next character is not a digit or a "." the current integer token is complete and the state is reset for the next lexeme
