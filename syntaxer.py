@@ -13,6 +13,8 @@ class Parser:
         print(self.current_token)
         self.lookahead=None
 
+
+
     def next_token(self):
         #keep track of the number of tokens we have
         self.token_index += 1
@@ -146,7 +148,12 @@ class Parser:
 
 #R15
     def statement(self):
-        if self.current_token == '{':
+        if self.current_token['type'] == 'identifier':
+            print(f"Token: Identifier Lexeme: {self.current_token['value']}")
+            self.match('identifier')
+            print("<Statement> -> <Assign>")
+            self.assign()
+        elif self.current_token == '{':
             if switch:
                 print('<Statement> -> <Compound>')
             self.compound()
@@ -174,6 +181,8 @@ class Parser:
             if switch:
                 print('<Statement> -> <While>')
             self.while_()
+        else:
+            raise SyntaxError("Expected an identifier.")
 
 #R16
     def compound(self):
@@ -266,8 +275,58 @@ class Parser:
             self.factor_prime()
         else:
             self.empty()
+
 #R28 Returns token types
-    #def primary():
+    def primary(self):
+        if self.current_token['type'] == 'identifier':
+            # If the current token is an identifier, parse it as an identifier
+            self.identifier()
+        elif self.current_token['type'] == 'integer':
+            # If the current token is an integer, parse it as an integer
+            self.integer()
+        elif self.current_token['type'] == 'real':
+            # If the current token is a real number, parse it as a real number
+            self.real()
+        elif self.current_token['value'] in ['true', 'false']:
+            # If the current token is 'true' or 'false', parse it as a boolean value
+            self.boolean()
+        elif self.current_token['value'] == '(':
+            # If the current token is '(', parse it as a sub-expression enclosed in parentheses
+            self.match('(')
+            self.expression()
+            self.match(')')
+        else:
+            raise SyntaxError(f"Unexpected token: '{self.current_token['value']}'.")
+
+    def integer(self):
+        # Parse an integer
+        if self.current_token[0] == 'integer':
+            # If the current token is an integer, consume it
+            integer_value = int(self.current_token[1])
+            self.match('integer')  # Match the integer token
+            return integer_value  # Return the integer value
+        else:
+            raise SyntaxError("Expected an integer.")
+
+    def real(self):
+        # Parse a real number
+        if self.current_token[0] == 'real':
+            # If the current token is a real number, consume it
+            real_value = float(self.current_token[1])
+            self.match('real')  # Match the real token
+            return real_value  # Return the real number value
+        else:
+            raise SyntaxError("Expected a real number.")
+
+    def boolean(self):
+        # Parse a boolean value
+        if self.current_token[1] in ['true', 'false']:
+            # If the current token is 'true' or 'false', consume it
+            boolean_value = self.current_token[1]
+            self.match(boolean_value)  # Match the boolean token
+            return boolean_value  # Return the boolean value
+        else:
+            raise SyntaxError("Expected 'true' or 'false'.")
 
 #R29
     def empty(self):
