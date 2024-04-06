@@ -1,0 +1,8 @@
+Token               Lexeme
+------------------------------
+identifier          a	0
+operator            =	0
+identifier          b	0
+operator            +	0
+identifier          c	0
+separator           ;	0

@@ -77,7 +77,7 @@ class record:
             output_file.write(self.list())
 
     def passargs(self):
-        return zip(self.token, self.lexeme)
+        return zip(self.token, self.lexeme, self.linehelper)
 
 # fsm will parse tokens by line
 # fsm function will also handle adding entries to the record that's why we are passing the record through there
