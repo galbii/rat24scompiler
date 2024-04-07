@@ -16,6 +16,8 @@ if __name__ == '__main__':
     r24parser = Parser(tokens)
     output = r24parser.parse()
 
+    print(output)
+
 
 
         

@@ -32,6 +32,7 @@ class Parser:
 
     def parse(self):
         self.Rat24S()
+        return self.output
 
 #R1 CHANGED
     def Rat24S(self):
@@ -185,38 +186,52 @@ class Parser:
 
 #R15 
     def statement(self):
-        print(self.current_token)
+        print(self.output)
         if 'identifier' == self.current_token[0]:
+            self.output.append(f"Token: Identifier Lexeme: {self.current_token[1]}")
+            self.output.append("<Statement> -> <Assign>")
             print(f"Token: Identifier Lexeme: {self.current_token[1]}")
-            self.match('identifier')
             print("<Statement> -> <Assign>")
             self.assign()
         elif self.current_token[1] == '{':
             if switch:
+                self.output.append(f"Token: {self.current_token[0]} Lexeme: {self.current_token[1]}")
+                self.output.append('<Statement> -> <Compound>')
                 print('<Statement> -> <Compound>')
             self.compound()
         elif self.current_token[1] == '=':
             if switch:
+                self.output.append(f"Token: {self.current_token[0]} Lexeme: {self.current_token[1]}")
+                self.output.append('<Statement> -> <Assign>')
                 print('<Statement> -> <Assign>')
             self.assign()
         elif self.current_token[1] == 'if':
             if switch:    
+                self.output.append(f"Token: {self.current_token[0]} Lexeme: {self.current_token[1]}")
+                self.output.append('<Statement> -> <If>')
                 print('<Statement> -> <If>')
             self.if_()
         elif self.current_token[1] == 'return':
             if switch:
+                self.output.append(f"Token: {self.current_token[0]} Lexeme: {self.current_token[1]}")
+                self.output.append('<Statement> -> <Return>')
                 print('<Statement> -> <Return>')
             self.return_()
         elif self.current_token[1] == 'print':
             if switch:
+                self.output.append(f"Token: {self.current_token[0]} Lexeme: {self.current_token[1]}")
+                self.output.append('<Statement> -> <Print>')
                 print('<Statement> -> <Print>')
             self.print_()
         elif self.current_token[1] == 'scan':
             if switch:
+                self.output.append("<Statement> -> <Assign>")
                 print('<Statement> -> <Scan>')
             self.scan_()
         elif self.current_token[1] == 'while':
             if switch:
+                self.output.append(f"Token: {self.current_token[0]} Lexeme: {self.current_token[1]}")
+                self.output.append("<Statement> -> <Assign>")
                 print('<Statement> -> <While>')
             self.while_()
         elif self.current_token[1] == ';':
@@ -233,21 +248,31 @@ class Parser:
 #R17 CHANGED
     def assign(self):
         if switch:
+            self.output.append(f"Token: {self.current_token[0]} Lexeme: {self.current_token[1]}")
+            self.output.append('<Assign> -> <Identifier> = <Expression>')
             print('<Assign> -> <Identifier> = <Expression>')
+        self.identifier()
         self.match('operator')
-        try:
-            self.identifier()
-        except:
-            pass
-        try:
-            self.expression()
-        except:
-            pass
-        self.match(';')
+        self.expression()
+        self.match('separator')
+#        if switch:
+#            print('<Assign> -> <Identifier> = <Expression>')
+#        self.match('operator')
+#        try:
+#            self.identifier()
+#        except:
+#            pass
+#        try:
+#            self.expression()
+#        except:
+#            pass
+#        self.match(';')
 
 #R18 CHANGED
     def if_(self):
         if switch:
+            self.output.append(f"Token: {self.current_token[0]} Lexeme: {self.current_token[1]}")
+            self.output.append('<If>-> if(<Condition>) <Statement> endif | if <Condition>) <Statement else <Statement> endif')
             print('<If>-> if(<Condition>) <Statement> endif | if <Condition>) <Statement>   else  <Statement>  endif')
         self.match('if')
         self.match('(')
@@ -266,6 +291,8 @@ class Parser:
 #R19 CHANGED
     def return_(self):
         if switch:
+            self.output.append(f"Token: {self.current_token[0]} Lexeme: {self.current_token[1]}")
+            self.output.append('<Return> -> return ; | return <Expression> ;')
             print('<Return> -> return ; | return <Expression> ;')
         self.match('return')
         self.return_prime()
@@ -281,6 +308,8 @@ class Parser:
 #R20 CHANGED
     def print_(self):
         if switch:
+            self.output.append(f"Token: {self.current_token[0]} Lexeme: {self.current_token[1]}")
+            self.output.append('<Print> -> print(<Expression>)')
             print('<Print> -> print(<Expression>)')
         self.match('print')
         self.match('(')
@@ -292,6 +321,8 @@ class Parser:
 #R21 CHANGED
     def scan_(self):
         if switch:
+            self.output.append(f"Token: {self.current_token[0]} Lexeme: {self.current_token[1]}")
+            self.output.append('<Scan>-> scan(<IDs>)')
             print('<Scan>-> scan(<IDs>)')
         self.match('scan')
         self.match('(')
@@ -302,6 +333,8 @@ class Parser:
 #R22 CHANGED
     def while_(self):
         if switch:
+            self.output.append(f"Token: {self.current_token[0]} Lexeme: {self.current_token[1]}")
+            self.output.append('<While> -> while (<Condition>) <Statement> endwhile')
             print('<While> -> while (<Condition>) <Statement> endwhile')
         self.match('while')
         self.match('(')
@@ -313,6 +346,8 @@ class Parser:
 #R23 CHANGED
     def condition(self):
         if switch:
+            self.output.append(f"Token: {self.current_token[0]} Lexeme: {self.current_token[1]}")
+            self.output.append('<Condition> -> <Expression><Relop><Expression>')
             print('<Condition> -> <Expression><Relop><Expression>')
         self.expression()
         self.relop()
@@ -321,6 +356,8 @@ class Parser:
 #R24 CHANGED
     def relop(self):
         if switch:
+            self.output.append(f"Token: {self.current_token[0]} Lexeme: {self.current_token[1]}")
+            self.output.append('<Relop> -> == | != | > | < | <= | =>')
             print('<Relop> -> == | != | > | < | <= | =>')
         if self.current_token[1] in ['==', '!=', '>', '<', '<=', '=>']:
             self.match(self.current_token[1])
@@ -330,16 +367,20 @@ class Parser:
 #R25 CHANGED
     def expression(self):
         if switch:
+            self.output.append(f"Token: {self.current_token[0]} Lexeme: {self.current_token[1]}")
+            self.output.append('<Expression> -> <Term> <Expression Prime>')
             print('<Expression> -> <Term> <Expression Prime>')
         self.term()
         self.expression_prime()
 
     def expression_prime(self):
         if switch:
+            self.output.append(f"Token: {self.current_token[0]} Lexeme: {self.current_token[1]}")
+            self.output.append('<Expression Prime> -> +<Term><Expression Prime> | -<Term><Expression Prime> | Empty')
             print('<Expression Prime> -> +<Term><Expression Prime> | -<Term><Expression Prime> | Empty')
-        if self.current_token[1] in ['+', '-']:
+        if self.current_token[0] in ['operator']:
             if self.current_token[1] == '+':
-                self.match('+')
+                self.match('operator')
             elif self.current_token[1] == '-':
                 self.match('-')
             self.term()
@@ -349,12 +390,16 @@ class Parser:
 #R26 CHANGED
     def term(self):
         if switch:
+            self.output.append(f"Token: {self.current_token[0]} Lexeme: {self.current_token[1]}")
+            self.output.append('<Term> -> <Factor><Term Prime>')
             print('<Term> -> <Factor><Term Prime>')
         self.factor()
         self.term_prime()
 
     def term_prime(self):
         if switch:
+            self.output.append(f"Token: {self.current_token[0]} Lexeme: {self.current_token[1]}")
+            self.output.append('<Term Prime> -> *<Factor><Term Prime> | /<Factor><Term Prime> | Empty')
             print('<Term Prime> -> *<Factor><Term Prime> | /<Factor><Term Prime> | Empty')
         if self.current_token[1] in ['*', '/']:
             if self.current_token[1] == '*':
