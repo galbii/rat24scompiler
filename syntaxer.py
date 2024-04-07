@@ -25,6 +25,8 @@ class Parser:
             self.next_token()
         elif self.current_token[1] == '$':
             self.next_token()
+        elif self.current_token[1] == expected_token:
+            self.next_token()
         else:
             raise SyntaxError(f"Expected '{expected_token}' but found '{self.current_token[0]}'.")
 
@@ -33,16 +35,25 @@ class Parser:
 
 #R1 CHANGED
     def Rat24S(self):
+        switch = False
         try:
             self.match('$')
             self.opt_func_def()
+        except:
+            self.empty()
+        try:
+            self.match('$')
             self.opt_declaration_list()
+        except:
+            self.empty()
+        try:
+            self.match('$')
+            switch = True
         except:
             self.empty()
 
         self.statement_list()
-        print('what')
-        self.empty()
+        self.match('$')
 
 #R2 CHANGED
     def opt_func_def(self):
@@ -91,7 +102,7 @@ class Parser:
         self.parameter_list_prime()
 
     def parameter_list_prime(self):
-        if self.current_token[0] == ',':
+        if self.current_token[1] == ',':
             self.match(',')
             self.parameter()
             self.parameter_list_prime()
@@ -105,9 +116,9 @@ class Parser:
 
 #R8
     def qualifier(self):
-        if self.current_token in ['integer', 'boolean', 'real']:
+        if self.current_token[0] in ['integer', 'boolean', 'real']:
             # If the current token matches any of the valid qualifiers, consume it
-            qualifier_value = self.current_token
+            qualifier_value = self.current_token[1]
             self.next_token()  # Move to the next token
             return qualifier_value
         else:
@@ -153,7 +164,7 @@ class Parser:
         self.IDs_prime()
 
     def IDs_prime(self):
-        if self.current_token[0] == ',':
+        if self.current_token[1] == ',':
             self.match(',')
             self.identifier()
             self.IDs_prime()
@@ -174,10 +185,10 @@ class Parser:
 
 #R15 
     def statement(self):
+        print(self.current_token)
         if 'identifier' == self.current_token[0]:
             print(f"Token: Identifier Lexeme: {self.current_token[1]}")
             self.match('identifier')
-            print('hello')
             print("<Statement> -> <Assign>")
             self.assign()
         elif self.current_token[1] == '{':
@@ -208,6 +219,8 @@ class Parser:
             if switch:
                 print('<Statement> -> <While>')
             self.while_()
+        elif self.current_token[1] == ';':
+            self.match(';')
         else:
             raise SyntaxError("Expected an identifier.")
 
@@ -222,8 +235,14 @@ class Parser:
         if switch:
             print('<Assign> -> <Identifier> = <Expression>')
         self.match('operator')
-        self.identifier()
-        self.expression()
+        try:
+            self.identifier()
+        except:
+            pass
+        try:
+            self.expression()
+        except:
+            pass
         self.match(';')
 
 #R18 CHANGED
@@ -239,7 +258,7 @@ class Parser:
         self.match("endif")
 
     def if_prime(self):
-        if self.current_token[0] == 'else':
+        if self.current_token[1] == 'else' or self.current_token[0] == 'else':
             self.match('else')
             self.statement()
         else:
@@ -252,7 +271,7 @@ class Parser:
         self.return_prime()
 
     def return_prime(self):
-        if self.current_token[0] == ';':
+        if self.current_token[1] == ';':
             self.match(';')
         else:
             self.expression()
@@ -303,8 +322,8 @@ class Parser:
     def relop(self):
         if switch:
             print('<Relop> -> == | != | > | < | <= | =>')
-        if self.current_token[0] in ['==', '!=', '>', '<', '<=', '=>']:
-            self.match(self.current_token[0])
+        if self.current_token[1] in ['==', '!=', '>', '<', '<=', '=>']:
+            self.match(self.current_token[1])
         else:
             raise SyntaxError('Invalid Relop Operator')
 
@@ -318,10 +337,10 @@ class Parser:
     def expression_prime(self):
         if switch:
             print('<Expression Prime> -> +<Term><Expression Prime> | -<Term><Expression Prime> | Empty')
-        if self.current_token[0] in ['+', '-']:
-            if self.current_token[0] == '+':
+        if self.current_token[1] in ['+', '-']:
+            if self.current_token[1] == '+':
                 self.match('+')
-            elif self.current_token[0] == '-':
+            elif self.current_token[1] == '-':
                 self.match('-')
             self.term()
             self.expression_prime()
@@ -337,10 +356,10 @@ class Parser:
     def term_prime(self):
         if switch:
             print('<Term Prime> -> *<Factor><Term Prime> | /<Factor><Term Prime> | Empty')
-        if self.current_token[0] in ['*', '/']:
-            if self.current_token[0] == '*':
+        if self.current_token[1] in ['*', '/']:
+            if self.current_token[1] == '*':
                 self.match('*')
-            elif self.current_token[0] == '/':
+            elif self.current_token[1] == '/':
                 self.match('/')
             self.factor()
             self.term_prime()
@@ -350,14 +369,14 @@ class Parser:
     def identifier(self):
         if self.current_token[0] == 'identifier':
             # If the current token is an identifier, consume it
-            identifier_value = self.current_token[0]
+            identifier_value = self.current_token[1]
             self.match(identifier_value)  # Match the identifier token
         else:
             raise SyntaxError(f"Expected an identifier but found '{self.current_token[0]}'.")
 
 #R27 CHANGED
     def factor(self):
-        if self.current_token[0] == '-':
+        if self.current_token[1] == '-':
             self.match('-')
             self.primary()
         else:
@@ -376,16 +395,18 @@ class Parser:
         elif self.current_token[0] == 'real':
             # If the current token is a real number, parse it as a real number
             self.real()
-        elif self.current_token[0] in ['true', 'false']:
+        elif self.current_token[1] in ['true', 'false']:
             # If the current token is 'true' or 'false', parse it as a boolean value
             self.boolean()
-        elif self.current_token[0] == '(':
+        elif self.current_token[1] == '(':
             # If the current token is '(', parse it as a sub-expression enclosed in parentheses
             self.match('(')
             self.expression()
             self.match(')')
         else:
-            raise SyntaxError(f"Unexpected token: '{self.current_token[1]}'.")
+            self.empty()
+            print(f"Unexpected token: '{self.current_token[1]}'.")
+            #raise SyntaxError(f"Unexpected token: '{self.current_token[1]}'.")
 
     def integer(self):
         # Parse an integer
