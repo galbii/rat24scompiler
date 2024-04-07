@@ -1,8 +1,10 @@
 Token               Lexeme
 ------------------------------
-identifier          a	0
-operator            =	0
-identifier          b	0
-operator            +	0
-identifier          c	0
-separator           ;	0
+separator           $	0
+identifier          a	1
+operator            =	1
+identifier          b	1
+operator            +	1
+identifier          c	1
+separator           ;	1
+separator           $	2

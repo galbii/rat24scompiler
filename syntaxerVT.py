@@ -1,25 +1,43 @@
 switch = True
 
 class Parser:
-    def __init__(self,token):
-        self.token = token.head
+    def __init__(self, tokens):
+        #token list is defined in a 3tuple zip object
+        #token[i][0] will be the type of token
+        #token[i][1] will be the lexeme
+        #token[i][2] will be the line number
+
+        self.tokens = list(tokens)
+        self.token_index = 0
+        self.current_token = self.tokens[self.token_index]
+        print(self.current_token)
         self.lookahead=None
 
+
+
     def next_token(self):
-        if(self.lookahead==None):
-            return self.token
+        #keep track of the number of tokens we have
+        self.token_index += 1
+        if self.token_index < len(self.tokens):
+            self.current_token = self.tokens[self.token_index]
+        #else if there are no more tokens
+
+    def match(self, expected_token):
+        if self.current_token[0] == expected_token:
+            self.next_token()
         else:
-            self.token=self.token.next
-            return self.token
+            raise SyntaxError(f"Expected '{expected_token}' but found '{self.current_token[0]}'.")
+
+    def parse(self):
+        self.Rat24S()
+
 #R1
     def Rat24S(self):
         self.opt_func()
-        self.opt_declaration_list()
-        self.statement_list()
 
 #R2
     def opt_func(self):
-        if self.token:
+        if self.current_token:
             self.func_def()
         else:
             self.empty()
@@ -30,7 +48,7 @@ class Parser:
         self.function_def_prime()
 
     def function_def_prime(self):
-        if self.token:
+        if self.current_token:
             self.func()
             self.function_def_prime()
         else:
@@ -45,7 +63,7 @@ class Parser:
 
 #R5
     def opt_parameter_list(self):
-        if self.token:
+        if self.current_token:
             self.parameter_list()
         else:
             self.empty()
@@ -56,7 +74,7 @@ class Parser:
         self.parameter_list_prime()
 
     def parameter_list_prime(self):
-        if self.token:
+        if self.current_token:
             self.parameter()
             self.parameter_list_prime()
         else:
@@ -68,7 +86,13 @@ class Parser:
         self.qualifier()
 #R8
     def qualifier(self):
-        
+        if self.current_token in ['integer', 'boolean', 'real']:
+            # If the current token matches any of the valid qualifiers, consume it
+            qualifier_value = self.current_token
+            self.next_token()  # Move to the next token
+            return qualifier_value
+        else:
+            raise SyntaxError(f"Expected 'integer', 'boolean', or 'real' but found '{self.current_token}'.")
 
 #R9
     def body(self):
@@ -76,7 +100,7 @@ class Parser:
 
 #R10
     def opt_declaration_list(self):
-        if self.token:
+        if self.current_token:
             self.declaration_list()
         else:
             self.empty()
@@ -87,7 +111,7 @@ class Parser:
         self.declaration_list_prime()
 
     def declaration_list_prime(self):
-        if self.token:
+        if self.current_token:
             self.declaration()
             self.declaration_list_prime()
         else:
@@ -104,10 +128,10 @@ class Parser:
         self.IDs_prime()
 
     def IDs_prime(self):
-        if self.token:
+        if self.current_token:
             self.identifier()
             self.IDs_prime()
-        else():
+        else:
             self.empty()
 
 #R14
@@ -116,7 +140,7 @@ class Parser:
         self.statement_list_prime()
 
     def statement_list_prime(self):
-        if self.token:
+        if self.current_token:
             self.statement()
             self.statement_list_prime()
         else:
@@ -124,34 +148,41 @@ class Parser:
 
 #R15
     def statement(self):
-        if self.token == '{':
+        if self.current_token['type'] == 'identifier':
+            print(f"Token: Identifier Lexeme: {self.current_token['value']}")
+            self.match('identifier')
+            print("<Statement> -> <Assign>")
+            self.assign()
+        elif self.current_token == '{':
             if switch:
                 print('<Statement> -> <Compound>')
             self.compound()
-        elif self.token == '=':
+        elif self.current_token == '=':
             if switch:
                 print('<Statement> -> <Assign>')
             self.assign()
-        elif self.token == 'if':
+        elif self.current_token == 'if':
             if switch:    
                 print('<Statement> -> <If>')
             self.if_()
-        elif self.token == 'return':
+        elif self.current_token == 'return':
             if switch:
                 print('<Statement> -> <Return>')
             self.return_()
-        elif self.token == 'print':
+        elif self.current_token == 'print':
             if switch:
                 print('<Statement> -> <Print>')
             self.print_()
-        elif self.token == 'scan':
+        elif self.current_token == 'scan':
             if switch:
                 print('<Statement> -> <Scan>')
             self.scan_()
-        elif token == 'while':
+        elif self.current_token == 'while':
             if switch:
                 print('<Statement> -> <While>')
             self.while_()
+        else:
+            raise SyntaxError("Expected an identifier.")
 
 #R16
     def compound(self):
@@ -207,7 +238,7 @@ class Parser:
     def expression_prime(self):
         if switch:
             print('<Expression Prime> -> +<Term><Expression Prime> | -<Term><Expression Prime> | Empty')
-        if self.token == '+' or '-':
+        if self.current_token == '+' or '-':
             self.term()
             self.expression_prime()
 #R26
@@ -220,27 +251,84 @@ class Parser:
     def term_prime(self):
         if switch:
             print('<Term Prime> -> *<Factor><Term Prime> | /<Factor><Term Prime> | Empty')
-        if self.token == '*' or "/":
+        if self.current_token == '*' or "/":
             self.factor()
             self.term_prime()
         else:
             self.empty()
-            
+
+    def identifier(self):
+        if self.current_token[0] == 'identifier':
+            # If the current token is an identifier, consume it
+            identifier_value = self.current_token[0]
+            self.match(identifier_value)  # Match the identifier token
+        else:
+            raise SyntaxError(f"Expected an identifier but found '{self.current_token[0]}'.")
 #R27
     def factor(self):
         self.primary()
         self.factor_prime()
 
     def factor_prime(self):
-        if self.token:
+        if self.current_token:
             self.primary()
             self.factor_prime()
         else:
             self.empty()
+
 #R28 Returns token types
-    def primary():
+    def primary(self):
+        if self.current_token['type'] == 'identifier':
+            # If the current token is an identifier, parse it as an identifier
+            self.identifier()
+        elif self.current_token['type'] == 'integer':
+            # If the current token is an integer, parse it as an integer
+            self.integer()
+        elif self.current_token['type'] == 'real':
+            # If the current token is a real number, parse it as a real number
+            self.real()
+        elif self.current_token['value'] in ['true', 'false']:
+            # If the current token is 'true' or 'false', parse it as a boolean value
+            self.boolean()
+        elif self.current_token['value'] == '(':
+            # If the current token is '(', parse it as a sub-expression enclosed in parentheses
+            self.match('(')
+            self.expression()
+            self.match(')')
+        else:
+            raise SyntaxError(f"Unexpected token: '{self.current_token['value']}'.")
+
+    def integer(self):
+        # Parse an integer
+        if self.current_token[0] == 'integer':
+            # If the current token is an integer, consume it
+            integer_value = int(self.current_token[1])
+            self.match('integer')  # Match the integer token
+            return integer_value  # Return the integer value
+        else:
+            raise SyntaxError("Expected an integer.")
+
+    def real(self):
+        # Parse a real number
+        if self.current_token[0] == 'real':
+            # If the current token is a real number, consume it
+            real_value = float(self.current_token[1])
+            self.match('real')  # Match the real token
+            return real_value  # Return the real number value
+        else:
+            raise SyntaxError("Expected a real number.")
+
+    def boolean(self):
+        # Parse a boolean value
+        if self.current_token[1] in ['true', 'false']:
+            # If the current token is 'true' or 'false', consume it
+            boolean_value = self.current_token[1]
+            self.match(boolean_value)  # Match the boolean token
+            return boolean_value  # Return the boolean value
+        else:
+            raise SyntaxError("Expected 'true' or 'false'.")
 
 #R29
-    def empty():
+    def empty(self):
         if switch:
             print('<Empty>') 

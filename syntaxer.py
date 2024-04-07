@@ -10,13 +10,11 @@ class Parser:
         self.tokens = list(tokens)
         self.token_index = 0
         self.current_token = self.tokens[self.token_index]
-        print(self.current_token)
-        self.lookahead=None
-
-
+        self.output = []
 
     def next_token(self):
         #keep track of the number of tokens we have
+        print(self.current_token)
         self.token_index += 1
         if self.token_index < len(self.tokens):
             self.current_token = self.tokens[self.token_index]
@@ -25,65 +23,86 @@ class Parser:
     def match(self, expected_token):
         if self.current_token[0] == expected_token:
             self.next_token()
+        elif self.current_token[1] == '$':
+            self.next_token()
         else:
             raise SyntaxError(f"Expected '{expected_token}' but found '{self.current_token[0]}'.")
 
     def parse(self):
         self.Rat24S()
 
-#R1
+#R1 CHANGED
     def Rat24S(self):
-        self.opt_func()
+        try:
+            self.match('$')
+            self.opt_func_def()
+            self.opt_declaration_list()
+        except:
+            self.empty()
 
-#R2
-    def opt_func(self):
-        if self.current_token:
+        self.statement_list()
+        print('what')
+        self.empty()
+
+#R2 CHANGED
+    def opt_func_def(self):
+        if self.current_token[0] == 'function':
+            self.match('$')
             self.func_def()
         else:
             self.empty()
 
-#R3
+#R3 CHANGEDd
     def func_def(self):
         self.func()
         self.function_def_prime()
 
     def function_def_prime(self):
-        if self.current_token:
+        if self.current_token[0]:
             self.func()
+            print('hi')
             self.function_def_prime()
         else:
             self.empty()
 
-#R4
+#R4 CHANGED
     def func(self):
-        self.identifier()
-        self.opt_parameter_list()
-        self.opt_declaration_list()
-        self.body()
-
-#R5
+        if self.current_token[0] == 'function':
+            self.identifier()
+            self.match('(')
+            self.opt_parameter_list()
+            self.match(')')
+            self.opt_declaration_list()
+            self.body()
+        else:
+            self.empty()
+        
+#R5 CHANGED
     def opt_parameter_list(self):
         if self.current_token:
+            self.match('$')
             self.parameter_list()
         else:
             self.empty()
 
-#R6
+#R6 CHANGED
     def parameter_list(self):
         self.parameter()
         self.parameter_list_prime()
 
     def parameter_list_prime(self):
-        if self.current_token:
+        if self.current_token[0] == ',':
+            self.match(',')
             self.parameter()
             self.parameter_list_prime()
         else:
             self.empty()
 
-#R7
+#R7 CHANGED
     def parameter(self):
         self.IDs()
         self.qualifier()
+
 #R8
     def qualifier(self):
         if self.current_token in ['integer', 'boolean', 'real']:
@@ -94,47 +113,54 @@ class Parser:
         else:
             raise SyntaxError(f"Expected 'integer', 'boolean', or 'real' but found '{self.current_token}'.")
 
-#R9
+#R9 CHANGED
     def body(self):
+        self.match('{')
         self.statement_list()
+        self.match('}')
 
-#R10
+
+#R10 CHANGED
     def opt_declaration_list(self):
         if self.current_token:
+            self.match('$')
             self.declaration_list()
         else:
             self.empty()
 
-#R11
+#R11 CHANGED
     def declaration_list(self):
         self.declaration()
+        self.match(';')
         self.declaration_list_prime()
 
     def declaration_list_prime(self):
         if self.current_token:
             self.declaration()
+            self.match(';')
             self.declaration_list_prime()
         else:
             self.empty()
 
-#R12
+#R12 CHANGED
     def declaration(self):
         self.qualifier()
         self.IDs()
 
-#R13
+#R13 CHANGED
     def IDs(self):
         self.identifier()
         self.IDs_prime()
 
     def IDs_prime(self):
-        if self.current_token:
+        if self.current_token[0] == ',':
+            self.match(',')
             self.identifier()
             self.IDs_prime()
         else:
             self.empty()
 
-#R14
+#R14 CHANGED
     def statement_list(self):
         self.statement()
         self.statement_list_prime()
@@ -146,89 +172,143 @@ class Parser:
         else:
             self.empty()
 
-#R15
+#R15 
     def statement(self):
-        if self.current_token['type'] == 'identifier':
-            print(f"Token: Identifier Lexeme: {self.current_token['value']}")
+        if 'identifier' == self.current_token[0]:
+            print(f"Token: Identifier Lexeme: {self.current_token[1]}")
             self.match('identifier')
+            print('hello')
             print("<Statement> -> <Assign>")
             self.assign()
-        elif self.current_token == '{':
+        elif self.current_token[1] == '{':
             if switch:
                 print('<Statement> -> <Compound>')
             self.compound()
-        elif self.current_token == '=':
+        elif self.current_token[1] == '=':
             if switch:
                 print('<Statement> -> <Assign>')
             self.assign()
-        elif self.current_token == 'if':
+        elif self.current_token[1] == 'if':
             if switch:    
                 print('<Statement> -> <If>')
             self.if_()
-        elif self.current_token == 'return':
+        elif self.current_token[1] == 'return':
             if switch:
                 print('<Statement> -> <Return>')
             self.return_()
-        elif self.current_token == 'print':
+        elif self.current_token[1] == 'print':
             if switch:
                 print('<Statement> -> <Print>')
             self.print_()
-        elif self.current_token == 'scan':
+        elif self.current_token[1] == 'scan':
             if switch:
                 print('<Statement> -> <Scan>')
             self.scan_()
-        elif self.current_token == 'while':
+        elif self.current_token[1] == 'while':
             if switch:
                 print('<Statement> -> <While>')
             self.while_()
         else:
             raise SyntaxError("Expected an identifier.")
 
-#R16
+#R16 CHANGED
     def compound(self):
+        self.match('{')
         self.statement_list()
+        self.match('}')
 
-#R17
+#R17 CHANGED
     def assign(self):
         if switch:
             print('<Assign> -> <Identifier> = <Expression>')
+        self.match('operator')
+        self.identifier()
+        self.expression()
+        self.match(';')
 
-#R18
+#R18 CHANGED
     def if_(self):
         if switch:
             print('<If>-> if(<Condition>) <Statement> endif | if <Condition>) <Statement>   else  <Statement>  endif')
+        self.match('if')
+        self.match('(')
+        self.condition()
+        self.match(')')
+        self.statement()
+        self.if_prime()
+        self.match("endif")
 
-#R19
+    def if_prime(self):
+        if self.current_token[0] == 'else':
+            self.match('else')
+            self.statement()
+        else:
+            self.empty()
+#R19 CHANGED
     def return_(self):
         if switch:
             print('<Return> -> return ; | return <Expression> ;')
+        self.match('return')
+        self.return_prime()
 
-#R20
+    def return_prime(self):
+        if self.current_token[0] == ';':
+            self.match(';')
+        else:
+            self.expression()
+            self.match(';')
+    
+
+#R20 CHANGED
     def print_(self):
         if switch:
             print('<Print> -> print(<Expression>)')
+        self.match('print')
+        self.match('(')
+        self.expression()
+        self.match(')')
+        self.match(';')
 
-#R21
+
+#R21 CHANGED
     def scan_(self):
         if switch:
             print('<Scan>-> scan(<IDs>)')
+        self.match('scan')
+        self.match('(')
+        self.IDs()
+        self.match(')')
+        self.match(';')
 
-#R22
+#R22 CHANGED
     def while_(self):
         if switch:
             print('<While> -> while (<Condition>) <Statement> endwhile')
+        self.match('while')
+        self.match('(')
+        self.condition()
+        self.match(')')
+        self.statement()
+        self.match('endwhile')
 
-#R23
+#R23 CHANGED
     def condition(self):
         if switch:
             print('<Condition> -> <Expression><Relop><Expression>')
+        self.expression()
+        self.relop()
+        self.expression()
 
-#R24
+#R24 CHANGED
     def relop(self):
         if switch:
             print('<Relop> -> == | != | > | < | <= | =>')
+        if self.current_token[0] in ['==', '!=', '>', '<', '<=', '=>']:
+            self.match(self.current_token[0])
+        else:
+            raise SyntaxError('Invalid Relop Operator')
 
-#R25
+#R25 CHANGED
     def expression(self):
         if switch:
             print('<Expression> -> <Term> <Expression Prime>')
@@ -238,10 +318,16 @@ class Parser:
     def expression_prime(self):
         if switch:
             print('<Expression Prime> -> +<Term><Expression Prime> | -<Term><Expression Prime> | Empty')
-        if self.current_token == '+' or '-':
+        if self.current_token[0] in ['+', '-']:
+            if self.current_token[0] == '+':
+                self.match('+')
+            elif self.current_token[0] == '-':
+                self.match('-')
             self.term()
             self.expression_prime()
-#R26
+        else:
+            self.empty()
+#R26 CHANGED
     def term(self):
         if switch:
             print('<Term> -> <Factor><Term Prime>')
@@ -251,7 +337,11 @@ class Parser:
     def term_prime(self):
         if switch:
             print('<Term Prime> -> *<Factor><Term Prime> | /<Factor><Term Prime> | Empty')
-        if self.current_token == '*' or "/":
+        if self.current_token[0] in ['*', '/']:
+            if self.current_token[0] == '*':
+                self.match('*')
+            elif self.current_token[0] == '/':
+                self.match('/')
             self.factor()
             self.term_prime()
         else:
@@ -264,39 +354,38 @@ class Parser:
             self.match(identifier_value)  # Match the identifier token
         else:
             raise SyntaxError(f"Expected an identifier but found '{self.current_token[0]}'.")
-#R27
-    def factor(self):
-        self.primary()
-        self.factor_prime()
 
-    def factor_prime(self):
-        if self.current_token:
+#R27 CHANGED
+    def factor(self):
+        if self.current_token[0] == '-':
+            self.match('-')
             self.primary()
-            self.factor_prime()
         else:
-            self.empty()
+            self.primary()
+        
+
 
 #R28 Returns token types
     def primary(self):
-        if self.current_token['type'] == 'identifier':
+        if self.current_token[0] == 'identifier':
             # If the current token is an identifier, parse it as an identifier
             self.identifier()
-        elif self.current_token['type'] == 'integer':
+        elif self.current_token[0] == 'integer':
             # If the current token is an integer, parse it as an integer
             self.integer()
-        elif self.current_token['type'] == 'real':
+        elif self.current_token[0] == 'real':
             # If the current token is a real number, parse it as a real number
             self.real()
-        elif self.current_token['value'] in ['true', 'false']:
+        elif self.current_token[0] in ['true', 'false']:
             # If the current token is 'true' or 'false', parse it as a boolean value
             self.boolean()
-        elif self.current_token['value'] == '(':
+        elif self.current_token[0] == '(':
             # If the current token is '(', parse it as a sub-expression enclosed in parentheses
             self.match('(')
             self.expression()
             self.match(')')
         else:
-            raise SyntaxError(f"Unexpected token: '{self.current_token['value']}'.")
+            raise SyntaxError(f"Unexpected token: '{self.current_token[1]}'.")
 
     def integer(self):
         # Parse an integer
@@ -331,4 +420,5 @@ class Parser:
 #R29
     def empty(self):
         if switch:
-            print('<Empty>') 
+            print(self.current_token)
+            print('<Empty>')
